@@ -54,6 +54,7 @@
 
         /* TARJETA PRINCIPAL GLASSMORPHISM */
         .card {
+            position: relative; overflow: hidden;
             background: var(--glass-bg);
             backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
             border: 1px solid var(--glass-border); border-radius: var(--radius);
@@ -61,8 +62,8 @@
             display: flex; flex-direction: column; align-items: center; gap: 24px;
         }
 
-        /* BOTONES SUPERIORES */
-        .top-bar { display: flex; justify-content: space-between; width: 100%; margin-bottom: -5px;}
+        /* BOTONES SUPERIORES (AHORA CENTRADOS Y ESPACIADOS) */
+        .top-bar { display: flex; justify-content: center; gap: 15px; width: 100%; margin-bottom: -5px; }
         .btn-top {
             background: rgba(255,255,255,0.1); border: 1px solid transparent; color: var(--text);
             padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;
@@ -70,7 +71,6 @@
         }
         .btn-top:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
         .btn-top:active { transform: translateY(1px); }
-        .btn-top.active { background: rgba(250, 35, 59, 0.2); color: var(--accent); border-color: rgba(250, 35, 59, 0.4);}
 
         /* PORTADA */
         .cover-container {
@@ -114,20 +114,20 @@
         .vol-slider:hover { height: 8px; }
         .vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
 
-        /* PANELES DESLIZABLES (EQ y PLAYLIST) */
+        /* PANELES SOBREPUESTOS (OVERLAYS) */
         .sliding-panel {
-            background: var(--glass-bg); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-            border: 1px solid var(--glass-border); border-radius: var(--radius);
-            padding: 25px; display: flex; flex-direction: column; gap: 18px;
-            max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-            margin-top: -20px; pointer-events: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            padding: 35px 25px; display: flex; flex-direction: column; gap: 18px;
+            opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: translateY(20px); z-index: 50; pointer-events: none;
         }
-        .sliding-panel.show { max-height: 500px; opacity: 1; margin-top: 0; pointer-events: all; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .sliding-panel.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: all; box-shadow: none; }
         
-        .panel-header { font-weight: 700; font-size: 0.95rem; color: var(--text); display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; letter-spacing: 0.5px;}
+        .panel-header { font-weight: 700; font-size: 0.95rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; letter-spacing: 0.5px;}
 
         /* ECUALIZADOR (5 BANDAS) */
-        .eq-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+        .eq-row { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 5px; }
         .eq-label { font-size: 0.75rem; font-weight: 700; width: 55px; color: var(--text-dim); }
         .eq-slider { -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; cursor: pointer; transition: 0.2s;}
         .eq-slider:hover { height: 6px; }
@@ -143,7 +143,7 @@
         .search-box::placeholder { color: rgba(255,255,255,0.4); }
         .search-box:focus { background: rgba(255,255,255,0.1); border-color: var(--accent); }
 
-        .playlist-items { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 300px; padding-right: 5px;}
+        .playlist-items { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-right: 5px;}
         .playlist-items::-webkit-scrollbar { width: 5px; }
         .playlist-items::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
         .pl-item { display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: 1px solid transparent;}
@@ -168,10 +168,8 @@
                 </button>
                 <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden" onchange="handleFolderSelect(this)">
                 
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-top" onclick="togglePanel('eqPanel')" id="btnEQ">🎛️ EQ</button>
-                    <button class="btn-top" onclick="togglePanel('playlistPanel')" id="btnPL">📋 Lista</button>
-                </div>
+                <button class="btn-top" onclick="togglePanel('eqPanel')" id="btnEQ">🎛️ EQ</button>
+                <button class="btn-top" onclick="togglePanel('playlistPanel')" id="btnPL">📋 Lista</button>
             </div>
 
             <div class="cover-container">
@@ -221,59 +219,62 @@
                 <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.02" value="1">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--text-dim)"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </div>
-        </div>
 
-        <div class="sliding-panel" id="eqPanel">
-            <div class="panel-header">Ecualizador Pro (5 Bandas) 🎛️</div>
-            <div class="eq-row">
-                <span class="eq-label">60 Hz</span>
-                <input type="range" class="eq-slider" id="eq60" min="-12" max="12" value="0" step="1">
-                <span class="eq-val" id="val60">0 dB</span>
+            <div class="sliding-panel" id="eqPanel">
+                <div class="panel-header">
+                    <span>Ecualizador Pro 🎛️</span>
+                    <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem; transition:0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-dim)'" onclick="closePanels()">✖</button>
+                </div>
+                <div class="eq-row">
+                    <span class="eq-label">60 Hz</span>
+                    <input type="range" class="eq-slider" id="eq60" min="-12" max="12" value="0" step="1">
+                    <span class="eq-val" id="val60">0 dB</span>
+                </div>
+                <div class="eq-row">
+                    <span class="eq-label">250 Hz</span>
+                    <input type="range" class="eq-slider" id="eq250" min="-12" max="12" value="0" step="1">
+                    <span class="eq-val" id="val250">0 dB</span>
+                </div>
+                <div class="eq-row">
+                    <span class="eq-label">1 kHz</span>
+                    <input type="range" class="eq-slider" id="eq1k" min="-12" max="12" value="0" step="1">
+                    <span class="eq-val" id="val1k">0 dB</span>
+                </div>
+                <div class="eq-row">
+                    <span class="eq-label">4 kHz</span>
+                    <input type="range" class="eq-slider" id="eq4k" min="-12" max="12" value="0" step="1">
+                    <span class="eq-val" id="val4k">0 dB</span>
+                </div>
+                <div class="eq-row">
+                    <span class="eq-label">12 kHz</span>
+                    <input type="range" class="eq-slider" id="eq12k" min="-12" max="12" value="0" step="1">
+                    <span class="eq-val" id="val12k">0 dB</span>
+                </div>
             </div>
-            <div class="eq-row">
-                <span class="eq-label">250 Hz</span>
-                <input type="range" class="eq-slider" id="eq250" min="-12" max="12" value="0" step="1">
-                <span class="eq-val" id="val250">0 dB</span>
-            </div>
-            <div class="eq-row">
-                <span class="eq-label">1 kHz</span>
-                <input type="range" class="eq-slider" id="eq1k" min="-12" max="12" value="0" step="1">
-                <span class="eq-val" id="val1k">0 dB</span>
-            </div>
-            <div class="eq-row">
-                <span class="eq-label">4 kHz</span>
-                <input type="range" class="eq-slider" id="eq4k" min="-12" max="12" value="0" step="1">
-                <span class="eq-val" id="val4k">0 dB</span>
-            </div>
-            <div class="eq-row">
-                <span class="eq-label">12 kHz</span>
-                <input type="range" class="eq-slider" id="eq12k" min="-12" max="12" value="0" step="1">
-                <span class="eq-val" id="val12k">0 dB</span>
-            </div>
-        </div>
 
-        <div class="sliding-panel" id="playlistPanel">
-            <div class="panel-header">
-                <span>A Continuación</span>
-                <span id="plCount" style="color: var(--accent); font-size: 0.85rem;">0 pistas</span>
+            <div class="sliding-panel" id="playlistPanel">
+                <div class="panel-header">
+                    <span>A Continuación <span id="plCount" style="color: var(--accent); font-size: 0.85rem; margin-left:10px;">0 pistas</span></span>
+                    <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem; transition:0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--text-dim)'" onclick="closePanels()">✖</button>
+                </div>
+                <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar por título o artista..." oninput="filterPlaylist()">
+                <div class="playlist-items" id="playlistContainer">
+                    <div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Carpeta vacía</div>
+                </div>
             </div>
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Buscar por título o artista..." oninput="filterPlaylist()">
-            <div class="playlist-items" id="playlistContainer">
-                <div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Carpeta vacía</div>
-            </div>
-        </div>
 
+        </div>
     </div>
 
 <script>
     // --- MOTOR DUAL (CROSSFADE & WEB AUDIO API) ---
     const jsmediatags = window.jsmediatags;
     let playlist = [];
-    let playlistData = []; // Para almacenar metadatos extraídos
+    let playlistData = []; 
     let currentIndex = -1;
     let isShuffle = false;
     let isLoop = false;
-    let unplayedIndices = []; // Para el modo aleatorio inteligente
+    let unplayedIndices = []; 
 
     // Configuración Crossfade
     const CROSSFADE_TIME = 7.0; 
@@ -281,7 +282,7 @@
 
     let audioCtx;
     let gainNode1, gainNode2, masterGain;
-    let eq60, eq250, eq1k, eq4k, eq12k; // 5 Bandas
+    let eq60, eq250, eq1k, eq4k, eq12k; 
     let audio1 = new Audio();
     let audio2 = new Audio();
     
@@ -295,11 +296,10 @@
 
     // --- ATAJO DE TECLADO: BARRA ESPACIADORA ---
     document.addEventListener('keydown', (e) => {
-        // Evitar que funcione si el usuario está escribiendo en el buscador
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         
         if (e.code === 'Space' || e.key === ' ') {
-            e.preventDefault(); // Evita que la página haga scroll hacia abajo
+            e.preventDefault(); 
             togglePlay();
         }
     });
@@ -346,7 +346,6 @@
 
         playlist = files;
         
-        // Estructura base
         playlistData = playlist.map(f => ({
             file: f,
             title: f.name.replace(/\.[^/.]+$/, ""),
@@ -357,8 +356,8 @@
         document.getElementById('searchInput').value = '';
         
         resetShuffleQueue();
-        renderPlaylist(); // Render inicial rápido
-        loadAllMetadataSequentially(); // Carga de tags en segundo plano sin colgar la UI
+        renderPlaylist(); 
+        loadAllMetadataSequentially(); 
         
         playSong(0, true);
     }
@@ -373,7 +372,6 @@
                         playlistData[i].title = title;
                         playlistData[i].artist = artist;
                         
-                        // Actualizar DOM de la lista
                         const el = document.getElementById(`pl-${i}`);
                         if(el) {
                             el.querySelector('.pl-title').innerText = `${artist} - ${title}`;
@@ -389,7 +387,6 @@
     // --- LÓGICA DE ALEATORIO INTELIGENTE ---
     function resetShuffleQueue() {
         unplayedIndices = Array.from({length: playlist.length}, (_, i) => i);
-        // Fisher-Yates Shuffle
         for (let i = unplayedIndices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [unplayedIndices[i], unplayedIndices[j]] = [unplayedIndices[j], unplayedIndices[i]];
@@ -412,7 +409,6 @@
         const nextURL = URL.createObjectURL(file);
         crossfadeTriggered = false; 
 
-        // Retirar de la cola de no reproducidos si está ahí (para el shuffle)
         const uIdx = unplayedIndices.indexOf(index);
         if(uIdx > -1) unplayedIndices.splice(uIdx, 1);
 
@@ -493,10 +489,9 @@
             if (unplayedIndices.length === 0) resetShuffleQueue();
             nextIdx = unplayedIndices.pop();
             
-            // Prevenir repetición inmediata si acabamos de resetear la cola
             if (nextIdx === currentIndex && playlist.length > 1 && unplayedIndices.length > 0) {
-                unplayedIndices.unshift(nextIdx); // devolver al fondo
-                nextIdx = unplayedIndices.pop(); // tomar otro
+                unplayedIndices.unshift(nextIdx); 
+                nextIdx = unplayedIndices.pop(); 
             }
         } else {
             nextIdx = (currentIndex + 1) % playlist.length;
@@ -549,7 +544,6 @@
     }
 
     function extractMetadataForActive(file) {
-        // Uso de datos temporales hasta que cargue la imagen
         const pData = playlistData[currentIndex];
         document.getElementById('title').innerText = pData ? pData.title : file.name.replace(/\.[^/.]+$/, "");
         document.getElementById('artist').innerText = pData ? pData.artist : "Cargando...";
@@ -561,7 +555,6 @@
                 document.getElementById('title').innerText = title;
                 document.getElementById('artist').innerText = artist;
 
-                // Carátula (solo se carga para la canción activa para ahorrar RAM)
                 let coverUrl = "";
                 if (tag.tags.picture) {
                     const { data, format } = tag.tags.picture;
@@ -614,7 +607,6 @@
 
     volSlider.addEventListener('input', (e) => setMasterVolume(e.target.value));
 
-    // Rueda del ratón sobre la zona de volumen
     volumeControlArea.addEventListener('wheel', (e) => {
         e.preventDefault(); 
         const step = e.deltaY < 0 ? 0.05 : -0.05; 
@@ -622,30 +614,23 @@
     }, { passive: false });
 
 
-    // --- UI PANELES Y BUSCADOR ---
+    // --- UI PANELES (OVERLAYS) ---
     function togglePanel(id) {
-        const p = document.getElementById(id);
-        const btnEQ = document.getElementById('btnEQ');
-        const btnPL = document.getElementById('btnPL');
-        
-        if (id === 'eqPanel') {
-            document.getElementById('playlistPanel').classList.remove('show');
-            btnPL.classList.remove('active');
-            p.classList.toggle('show');
-            btnEQ.classList.toggle('active');
-        } else {
-            document.getElementById('eqPanel').classList.remove('show');
-            btnEQ.classList.remove('active');
-            p.classList.toggle('show');
-            btnPL.classList.toggle('active');
-        }
+        document.getElementById('eqPanel').classList.remove('show');
+        document.getElementById('playlistPanel').classList.remove('show');
+        document.getElementById(id).classList.add('show');
+    }
+    
+    function closePanels() {
+        document.getElementById('eqPanel').classList.remove('show');
+        document.getElementById('playlistPanel').classList.remove('show');
     }
 
     function renderPlaylist() {
         const cont = document.getElementById('playlistContainer'); cont.innerHTML = '';
         playlistData.forEach((data, i) => {
             const div = document.createElement('div'); div.className = 'pl-item'; div.id = `pl-${i}`;
-            div.onclick = () => playSong(i, true);
+            div.onclick = () => { playSong(i, true); closePanels(); };
             const displayTitle = data.artist === "Desconocido" ? data.title : `${data.artist} - ${data.title}`;
             div.innerHTML = `<span class="pl-title">${displayTitle}</span>`;
             cont.appendChild(div);

@@ -76,11 +76,11 @@
             display: flex; flex-direction: column; align-items: center; gap: 24px;
         }
 
-        .top-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; width: 100%; margin-bottom: -5px; }
+        .top-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; width: 100%; margin-bottom: -5px; }
         .btn-top {
             background: rgba(127,127,127,0.15); border: 1px solid transparent; color: var(--text);
-            padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;
-            cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); display: flex; align-items: center; gap: 6px;
+            padding: 8px 18px; border-radius: 20px; font-weight: 600; font-size: 0.75rem;
+            cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); display: flex; align-items: center; justify-content: center;
         }
         .btn-top:hover { background: rgba(127,127,127,0.25); transform: translateY(-2px); }
         .btn-top:active { transform: translateY(1px); }
@@ -98,7 +98,12 @@
             font-size: 1.5rem; font-weight: 800; white-space: nowrap; overflow: hidden; 
             text-overflow: ellipsis; letter-spacing: -0.5px; cursor: pointer; user-select: none;
         }
-        .song-artist { font-size: 1.05rem; color: var(--text-dim); margin-top: 6px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .song-artist { 
+            font-size: 1.05rem; color: var(--text-dim); margin-top: 6px; font-weight: 500; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            cursor: pointer; transition: color 0.2s ease;
+        }
+        .song-artist:hover { color: var(--accent); }
 
         .progress-container { width: 100%; margin-top: -5px;}
         .progress-bar { width: 100%; height: 6px; background: rgba(127,127,127,0.25); border-radius: 3px; cursor: pointer; position: relative; transition: height 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -154,11 +159,43 @@
         .playlist-items { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; padding-right: 5px;}
         .playlist-items::-webkit-scrollbar { width: 5px; }
         .playlist-items::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.2); border-radius: 10px; }
-        .pl-item { display: flex; align-items: center; gap: 10px; padding: 12px 15px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: 1px solid transparent;}
+        .pl-item { 
+            display: flex; align-items: center; justify-content: space-between; gap: 12px; 
+            padding: 11px 14px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+        }
         .pl-item:hover { background: rgba(127,127,127,0.1); }
         .pl-item.active { background: rgba(255, 64, 129, 0.15); border-color: rgba(255, 64, 129, 0.3);}
-        .pl-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;}
-        .pl-item.active .pl-title { color: var(--accent); }
+        .pl-song { 
+            font-size: 0.85rem; font-weight: 600; color: var(--text); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; text-align: left;
+        }
+        .pl-artist { 
+            font-size: 0.75rem; font-weight: 500; color: var(--text-dim); 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 42%; text-align: right; flex-shrink: 0;
+        }
+        .pl-item.active .pl-song { color: var(--accent); }
+        .pl-item.active .pl-artist { color: var(--accent); opacity: 0.85; }
+
+        /* ESTILOS DE LETRA (SINCRONIZADA Y PLANA) */
+        .lyrics-container {
+            display: flex; flex-direction: column; gap: 14px; overflow-y: auto; flex: 1; 
+            padding: 15px 10px; scroll-behavior: smooth; text-align: center;
+        }
+        .lyrics-container::-webkit-scrollbar { width: 5px; }
+        .lyrics-container::-webkit-scrollbar-thumb { background: rgba(127,127,127,0.2); border-radius: 10px; }
+        .lyric-line {
+            font-size: 0.95rem; font-weight: 600; color: var(--text-dim);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer;
+            line-height: 1.45; padding: 4px 8px; border-radius: 8px;
+        }
+        .lyric-line:hover { color: var(--text); background: rgba(127,127,127,0.08); }
+        .lyric-line.active {
+            color: var(--accent); font-size: 1.12rem; font-weight: 800; transform: scale(1.03);
+        }
+        .lyric-plain {
+            white-space: pre-wrap; font-size: 0.9rem; line-height: 1.65; color: var(--text);
+            text-align: center; font-weight: 500; padding: 5px;
+        }
 
         .hidden { display: none !important; }
     </style>
@@ -171,13 +208,12 @@
         <div class="card paused" id="playerCard">
             
             <div class="top-bar">
-                <button class="btn-top" onclick="document.getElementById('folderInput').click()">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> Carpeta
-                </button>
+                <button class="btn-top" onclick="document.getElementById('folderInput').click()" title="Cargar Carpeta">CAR</button>
                 <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden" onchange="handleFolderSelect(this)">
                 
-                <button class="btn-top" onclick="togglePanel('eqPanel')" id="btnEQ">Ecualizador</button>
-                <button class="btn-top" onclick="togglePanel('playlistPanel')" id="btnPL">Lista</button>
+                <button class="btn-top" onclick="togglePanel('eqPanel')" id="btnEQ" title="Ecualizador">ECU</button>
+                <button class="btn-top" onclick="openFullPlaylist()" id="btnPL" title="Lista de reproduccion">LIS</button>
+                <button class="btn-top" onclick="togglePanel('lyricsPanel')" id="btnLET" title="Letra de la cancion">LET</button>
             </div>
 
             <div class="cover-container">
@@ -186,7 +222,7 @@
 
             <div class="song-info">
                 <div class="song-title" id="title" onclick="toggleTheme()" title="Click para alternar Modo Claro / Modo Oscuro">MusicPlayer</div>
-                <div class="song-artist" id="artist">Carga una carpeta para comenzar</div>
+                <div class="song-artist" id="artist" onclick="filterByCurrentArtist()" title="Click para ver todas las canciones de este artista">Carga una carpeta para comenzar</div>
             </div>
 
             <div class="progress-container">
@@ -262,12 +298,22 @@
 
             <div class="sliding-panel" id="playlistPanel">
                 <div class="panel-header">
-                    <span>Lista de reproduccion <span id="plCount" style="color: var(--accent); font-size: 0.85rem; margin-left:10px;">0 pistas</span></span>
+                    <span><span id="plHeaderTitle">Lista de reproduccion</span> <span id="plCount" style="color: var(--accent); font-size: 0.85rem; margin-left:10px;">0 pistas</span></span>
                     <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem; transition:0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-dim)'" onclick="closePanels()">✕</button>
                 </div>
-                <input type="text" id="searchInput" class="search-box" placeholder="Buscar por titulo o artista..." oninput="filterPlaylist()">
+                <input type="text" id="searchInput" class="search-box" placeholder="Buscar por cancion, artista o album..." oninput="filterPlaylist()">
                 <div class="playlist-items" id="playlistContainer">
                     <div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Carpeta vacia</div>
+                </div>
+            </div>
+
+            <div class="sliding-panel" id="lyricsPanel">
+                <div class="panel-header">
+                    <span>Letra <span id="lyricsStatus" style="color: var(--accent); font-size: 0.8rem; margin-left:8px;"></span></span>
+                    <button style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem; transition:0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-dim)'" onclick="closePanels()">✕</button>
+                </div>
+                <div class="lyrics-container" id="lyricsContainer">
+                    <div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Reproduce una cancion para buscar su letra automaticamente</div>
                 </div>
             </div>
 
@@ -278,10 +324,19 @@
     const jsmediatags = window.jsmediatags;
     let playlist = [];
     let playlistData = []; 
+    let cachedTagsMap = {};
     let currentIndex = -1;
     let isShuffle = false;
     let isLoop = false;
     let unplayedIndices = []; 
+    let metadataScanJobId = 0;
+
+    // Variables de Letra
+    let syncedLyrics = [];
+    let isSyncedLyrics = false;
+    let activeLyricIndex = -1;
+    let currentSongMeta = { title: "", artist: "", album: "", year: "" };
+    let lastLyricsFetchId = 0;
 
     const CROSSFADE_TIME = 7.0; 
     let crossfadeTriggered = false;
@@ -316,6 +371,77 @@
     function toggleTheme() {
         document.body.classList.toggle('light-theme');
         saveSettings();
+    }
+
+    // Normalizador de texto (elimina tildes/diacriticos y pasa a minusculas)
+    function normalizeText(str) {
+        if (!str) return "";
+        return str.toString().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    }
+
+    // Inferencia inmediata de metadatos a partir del nombre de archivo y estructura de subcarpetas
+    function parseInitialFileInfo(file) {
+        const rawName = file.name.replace(/\.[^/.]+$/, "");
+        const relPath = file.webkitRelativePath || file.name;
+        const pathParts = relPath.split('/').filter(Boolean);
+
+        // Limpiar prefijos de numero de pista como "01. ", "01 - ", "01 "
+        let cleanedName = rawName.replace(/^\d+\s*[-._)\]]\s*/, '').replace(/^\d+\s+/, '').trim();
+        if (!cleanedName) cleanedName = rawName;
+
+        let title = cleanedName;
+        let artist = "Desconocido";
+        let album = "";
+
+        if (cleanedName.includes(" - ")) {
+            const parts = cleanedName.split(" - ");
+            artist = parts[0].trim();
+            title = parts.slice(1).join(" - ").trim();
+        } else if (pathParts.length >= 3) {
+            // Estructura tipica: CarpetaRaiz / Artista / Album / Cancion.mp3 o CarpetaRaiz / Artista - Album / Cancion.mp3
+            const parentFolder = pathParts[pathParts.length - 2];
+            const grandParentFolder = pathParts[pathParts.length - 3];
+            if (parentFolder.includes(" - ")) {
+                const fParts = parentFolder.split(" - ");
+                artist = fParts[0].trim();
+                album = fParts.slice(1).join(" - ").trim();
+            } else {
+                album = parentFolder;
+                if (pathParts.length >= 4) {
+                    artist = grandParentFolder;
+                } else {
+                    artist = parentFolder;
+                }
+            }
+        } else if (pathParts.length === 2) {
+            const parentFolder = pathParts[0];
+            if (parentFolder.includes(" - ")) {
+                artist = parentFolder.split(" - ")[0].trim();
+            }
+        }
+
+        // Recuperar desde cache de localStorage si ya fue escaneado previamente
+        const cacheKey = relPath;
+        if (cachedTagsMap[cacheKey]) {
+            const cached = cachedTagsMap[cacheKey];
+            return {
+                name: file.name,
+                path: relPath,
+                title: cached.title || title,
+                artist: cached.artist || artist,
+                album: cached.album || album,
+                year: cached.year || ""
+            };
+        }
+
+        return {
+            name: file.name,
+            path: relPath,
+            title: title,
+            artist: artist,
+            album: album,
+            year: ""
+        };
     }
 
     function initAudioEngine() {
@@ -388,7 +514,7 @@
         navigator.mediaSession.metadata = new MediaMetadata({
             title: title || 'MusicPlayer',
             artist: artist || 'Desconocido',
-            album: 'MusicPlayer Library',
+            album: currentSongMeta.album || 'MusicPlayer Library',
             artwork: artwork
         });
         updateMediaSessionPosition();
@@ -412,48 +538,94 @@
     function handleFolderSelect(input) {
         initAudioEngine();
         
-        const files = Array.from(input.files).filter(f => f.type.startsWith('audio/') || f.name.toLowerCase().endsWith('.mp3'));
+        const audioExts = ['.mp3', '.flac', '.m4a', '.wav', '.ogg', '.aac', '.opus', '.wma'];
+        const files = Array.from(input.files).filter(f => {
+            const lower = f.name.toLowerCase();
+            return f.type.startsWith('audio/') || audioExts.some(ext => lower.endsWith(ext));
+        });
+
         if (files.length === 0) return alert("No se encontraron archivos de audio compatibles.");
 
         playlist = files;
-        playlistData = playlist.map(f => ({
-            name: f.name,
-            title: f.name.replace(/\.[^/.]+$/, ""),
-            artist: "Desconocido"
-        }));
+        playlistData = playlist.map(f => parseInitialFileInfo(f));
 
         document.getElementById('plCount').innerText = `${playlist.length} pistas`;
         document.getElementById('searchInput').value = '';
         
         resetShuffleQueue();
         renderPlaylist(); 
-        loadAllMetadataSequentially(); 
+        loadAllMetadataFast(); 
         
         playSong(0, true);
         saveSettings();
     }
 
-    async function loadAllMetadataSequentially() {
-        for (let i = 0; i < playlist.length; i++) {
-            await new Promise(resolve => {
-                jsmediatags.read(playlist[i], {
+    // Escaneo concurrente en lotes para bibliotecas grandes (ej. 1400+ canciones)
+    async function loadAllMetadataFast() {
+        const jobId = ++metadataScanJobId;
+        const BATCH_SIZE = 12;
+
+        for (let i = 0; i < playlist.length; i += BATCH_SIZE) {
+            if (jobId !== metadataScanJobId) return;
+
+            const batchIndices = [];
+            for (let j = i; j < i + BATCH_SIZE && j < playlist.length; j++) {
+                batchIndices.push(j);
+            }
+
+            await Promise.all(batchIndices.map(idx => new Promise(resolve => {
+                const file = playlist[idx];
+                const relPath = file.webkitRelativePath || file.name;
+
+                // Si ya estaba en cache, no necesitamos volver a abrir el binario
+                if (cachedTagsMap[relPath] && cachedTagsMap[relPath].artist && cachedTagsMap[relPath].artist !== "Desconocido") {
+                    return resolve();
+                }
+
+                jsmediatags.read(file, {
                     onSuccess: function(tag) {
-                        const title = tag.tags.title || playlistData[i].title;
-                        const artist = tag.tags.artist || "Desconocido";
-                        playlistData[i].title = title;
-                        playlistData[i].artist = artist;
-                        
-                        const el = document.getElementById(`pl-${i}`);
-                        if(el) {
-                            el.querySelector('.pl-title').innerText = `${artist} - ${title}`;
-                        }
+                        if (jobId !== metadataScanJobId) return resolve();
+                        const t = tag.tags || {};
+                        const title = (t.title && t.title.trim()) ? t.title.trim() : playlistData[idx].title;
+                        // Considerar tanto artist como albumArtist para agrupar todos los albumes del artista
+                        const rawArtist = (t.artist && t.artist.trim()) ? t.artist.trim() : ((t.TPE2 && t.TPE2.data) ? String(t.TPE2.data).trim() : "");
+                        const artist = rawArtist || playlistData[idx].artist || "Desconocido";
+                        const album = (t.album && t.album.trim()) ? t.album.trim() : playlistData[idx].album;
+                        const year = t.year || playlistData[idx].year || "";
+
+                        playlistData[idx].title = title;
+                        playlistData[idx].artist = artist;
+                        playlistData[idx].album = album;
+                        playlistData[idx].year = year;
+
+                        cachedTagsMap[relPath] = { title, artist, album, year };
+
+                        updatePlaylistRowDOM(idx);
                         resolve();
                     },
-                    onError: function() { resolve(); }
+                    onError: function() {
+                        resolve();
+                    }
                 });
-            });
+            })));
+
+            // Si el usuario tiene escrito algo en el buscador mientras termina de indexar, refrescar resultados en vivo
+            const activeQuery = document.getElementById('searchInput').value.trim();
+            if (activeQuery) {
+                filterPlaylist(true);
+            }
         }
         saveSettings();
+    }
+
+    function updatePlaylistRowDOM(idx) {
+        const el = document.getElementById(`pl-${idx}`);
+        if (!el || !playlistData[idx]) return;
+        const data = playlistData[idx];
+        const songSpan = el.querySelector('.pl-song');
+        const artistSpan = el.querySelector('.pl-artist');
+        if (songSpan) songSpan.innerText = data.title;
+        if (artistSpan) artistSpan.innerText = data.artist;
     }
 
     function resetShuffleQueue() {
@@ -618,6 +790,7 @@
             document.getElementById('currentTime').innerText = formatTime(aud.currentTime);
             document.getElementById('duration').innerText = formatTime(aud.duration);
             updateMediaSessionPosition();
+            syncLyricsUI(aud.currentTime);
         }
     }
 
@@ -638,14 +811,27 @@
 
         jsmediatags.read(file, {
             onSuccess: function(tag) {
-                const title = tag.tags.title || file.name.replace(/\.[^/.]+$/, "");
-                const artist = tag.tags.artist || "Desconocido";
+                const t = tag.tags || {};
+                const title = (t.title && t.title.trim()) ? t.title.trim() : currentTitle;
+                const artist = (t.artist && t.artist.trim()) ? t.artist.trim() : currentArtist;
+                const album = (t.album && t.album.trim()) ? t.album.trim() : (pData ? pData.album : "");
+                const year = t.year || (pData ? pData.year : "");
+
+                currentSongMeta = { title, artist, album, year };
+                if (playlistData[currentIndex]) {
+                    playlistData[currentIndex].title = title;
+                    playlistData[currentIndex].artist = artist;
+                    playlistData[currentIndex].album = album;
+                    playlistData[currentIndex].year = year;
+                    updatePlaylistRowDOM(currentIndex);
+                }
+
                 document.getElementById('title').innerText = title;
                 document.getElementById('artist').innerText = artist;
 
                 let coverUrl = "";
-                if (tag.tags.picture) {
-                    const { data, format } = tag.tags.picture;
+                if (t.picture) {
+                    const { data, format } = t.picture;
                     let b64 = ""; for (let i = 0; i < data.length; i++) b64 += String.fromCharCode(data[i]);
                     coverUrl = `data:${format};base64,${window.btoa(b64)}`;
                     document.getElementById('cover').src = coverUrl;
@@ -656,15 +842,316 @@
                 }
 
                 updateMediaSessionMetadata(title, artist, coverUrl);
+                fetchLyricsForCurrentSong();
             },
             onError: function() {
                 document.getElementById('cover').src = "";
                 document.getElementById('dynamic-bg').style.backgroundImage = "none";
+                currentSongMeta = { title: currentTitle, artist: currentArtist, album: pData ? pData.album : "", year: "" };
                 updateMediaSessionMetadata(currentTitle, currentArtist, null);
+                fetchLyricsForCurrentSong();
             }
         });
     }
 
+    // --- FILTRADO DE CANCIONES POR ARTISTA Y BUSQUEDA INDEPENDIENTE ---
+    function extractPrimaryArtistName(artistStr) {
+        if (!artistStr) return "";
+        // Si la pista actual tiene colaboraciones ("Artista 1 feat. Artista 2" o "Artista 1, Artista 2"),
+        // obtener el artista principal para mostrar todos sus albumes sin excluir temas solistas
+        const splitters = /\s+(?:feat\.?|ft\.?|con|with|x|&)\s+|[,;/]/i;
+        const primary = artistStr.split(splitters)[0].trim();
+        return primary || artistStr.trim();
+    }
+
+    function filterByCurrentArtist() {
+        if (playlistData.length === 0 || currentIndex < 0) return;
+        const rawArtistName = document.getElementById('artist').innerText.trim();
+        if (!rawArtistName || rawArtistName === "Carga una carpeta para comenzar") return;
+
+        const targetArtist = extractPrimaryArtistName(rawArtistName);
+        togglePanel('playlistPanel');
+        const searchInput = document.getElementById('searchInput');
+        searchInput.value = targetArtist;
+        filterPlaylist();
+        document.getElementById('plHeaderTitle').innerText = `Artista: ${targetArtist}`;
+    }
+
+    function openFullPlaylist() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('plHeaderTitle').innerText = 'Lista de reproduccion';
+        filterPlaylist();
+        togglePanel('playlistPanel');
+    }
+
+    function renderPlaylist() {
+        const cont = document.getElementById('playlistContainer'); 
+        cont.innerHTML = '';
+        if (playlistData.length === 0) {
+            cont.innerHTML = '<div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Carpeta vacia</div>';
+            return;
+        }
+        const fragment = document.createDocumentFragment();
+        playlistData.forEach((data, i) => {
+            const div = document.createElement('div');
+            div.className = 'pl-item';
+            div.id = `pl-${i}`;
+            div.onclick = () => { playSong(i, true); closePanels(); };
+
+            const songSpan = document.createElement('span');
+            songSpan.className = 'pl-song';
+            songSpan.innerText = data.title;
+
+            const artistSpan = document.createElement('span');
+            artistSpan.className = 'pl-artist';
+            artistSpan.innerText = data.artist;
+
+            div.appendChild(songSpan);
+            div.appendChild(artistSpan);
+            fragment.appendChild(div);
+        });
+        cont.appendChild(fragment);
+        updateActivePlaylist();
+    }
+
+    function filterPlaylist(preserveHeader = false) {
+        const rawQuery = document.getElementById('searchInput').value;
+        const normQuery = normalizeText(rawQuery);
+        const queryTokens = normQuery.split(/\s+/).filter(Boolean);
+
+        const items = document.querySelectorAll('.pl-item');
+        let visibleCount = 0;
+
+        items.forEach((item, i) => {
+            const data = playlistData[i];
+            if (!data) return;
+
+            if (queryTokens.length === 0) {
+                item.style.display = 'flex';
+                visibleCount++;
+                return;
+            }
+
+            // Campos independientes normalizados (sin tildes, minusculas)
+            const normTitle = normalizeText(data.title);
+            const normArtist = normalizeText(data.artist);
+            const normAlbum = normalizeText(data.album);
+            const normPath = normalizeText(data.path);
+
+            // Coincidencia directa en el campo individual de cancion, de artista o de album,
+            // o coincidencia de todos los terminos buscados a traves de los campos de la pista
+            const directTitleMatch = normTitle.includes(normQuery);
+            const directArtistMatch = normArtist.includes(normQuery);
+            const directAlbumMatch = normAlbum.includes(normQuery);
+            const combinedTokensMatch = queryTokens.every(token =>
+                normTitle.includes(token) ||
+                normArtist.includes(token) ||
+                normAlbum.includes(token) ||
+                normPath.includes(token)
+            );
+
+            const isMatch = directTitleMatch || directArtistMatch || directAlbumMatch || combinedTokensMatch;
+            item.style.display = isMatch ? 'flex' : 'none';
+            if (isMatch) visibleCount++;
+        });
+
+        if (!preserveHeader) {
+            document.getElementById('plHeaderTitle').innerText = normQuery ? 'Resultados' : 'Lista de reproduccion';
+        }
+        document.getElementById('plCount').innerText = `${visibleCount} pistas`;
+    }
+
+    function updateActivePlaylist() {
+        document.querySelectorAll('.pl-item').forEach(el => el.classList.remove('active'));
+        const el = document.getElementById(`pl-${currentIndex}`);
+        if(el) {
+            el.classList.add('active');
+            const container = document.getElementById('playlistContainer');
+            const offset = el.offsetTop - container.offsetTop - 10;
+            container.scrollTo({ top: offset, behavior: 'smooth' });
+        }
+    }
+
+    // --- BUSQUEDA AUTOMATICA Y SINCRONIZACION DE LETRAS ---
+    function cleanSearchTerm(str) {
+        if (!str) return "";
+        return str
+            .replace(/\(.*?\)|\[.*?\]/g, '')
+            .replace(/\b(feat\.?|ft\.?|official|video|audio|lyrics|visualizer|hd|hq|4k)\b.*/gi, '')
+            .replace(/[-_]+/g, ' ')
+            .trim();
+    }
+
+    async function fetchLyricsForCurrentSong() {
+        const fetchId = ++lastLyricsFetchId;
+        const container = document.getElementById('lyricsContainer');
+        const statusEl = document.getElementById('lyricsStatus');
+
+        syncedLyrics = [];
+        isSyncedLyrics = false;
+        activeLyricIndex = -1;
+
+        container.innerHTML = '<div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Buscando letra en internet...</div>';
+        statusEl.innerText = "Buscando...";
+
+        let rawTitle = currentSongMeta.title || "";
+        let rawArtist = currentSongMeta.artist || "";
+        let rawAlbum = currentSongMeta.album || "";
+
+        if ((rawArtist === "Desconocido" || !rawArtist) && rawTitle.includes(" - ")) {
+            const parts = rawTitle.split(" - ");
+            rawArtist = parts[0].trim();
+            rawTitle = parts.slice(1).join(" - ").trim();
+        }
+
+        const cleanTitle = cleanSearchTerm(rawTitle);
+        const cleanArtist = rawArtist === "Desconocido" ? "" : cleanSearchTerm( extractPrimaryArtistName(rawArtist) );
+        const cleanAlbum = cleanSearchTerm(rawAlbum);
+
+        try {
+            let bestMatch = null;
+            const params = new URLSearchParams();
+            if (cleanTitle) params.append('track_name', cleanTitle);
+            if (cleanArtist) params.append('artist_name', cleanArtist);
+            if (cleanAlbum) params.append('album_name', cleanAlbum);
+
+            let res = await fetch(`https://lrclib.net/api/search?${params.toString()}`);
+            let results = res.ok ? await res.json() : [];
+
+            if ((!results || results.length === 0) && (cleanTitle || cleanArtist)) {
+                const q = `${cleanArtist} ${cleanTitle}`.trim();
+                res = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`);
+                results = res.ok ? await res.json() : [];
+            }
+
+            if (fetchId !== lastLyricsFetchId) return;
+
+            if (results && results.length > 0) {
+                const targetDur = activeAudio.duration || 0;
+                const syncedCandidates = results.filter(r => r.syncedLyrics);
+
+                if (syncedCandidates.length > 0) {
+                    if (targetDur > 0) {
+                        syncedCandidates.sort((a, b) => Math.abs((a.duration || 0) - targetDur) - Math.abs((b.duration || 0) - targetDur));
+                    }
+                    bestMatch = syncedCandidates[0];
+                } else {
+                    const plainCandidates = results.filter(r => r.plainLyrics);
+                    if (plainCandidates.length > 0) bestMatch = plainCandidates[0];
+                }
+            }
+
+            if (bestMatch && bestMatch.syncedLyrics) {
+                parseSyncedLyrics(bestMatch.syncedLyrics);
+                renderLyricsUI();
+                statusEl.innerText = "Sincronizada";
+                return;
+            } else if (bestMatch && bestMatch.plainLyrics) {
+                renderPlainLyricsUI(bestMatch.plainLyrics);
+                statusEl.innerText = "Texto plano";
+                return;
+            }
+
+            if (cleanArtist && cleanTitle) {
+                const ovhRes = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`);
+                if (fetchId !== lastLyricsFetchId) return;
+                if (ovhRes.ok) {
+                    const ovhData = await ovhRes.json();
+                    if (ovhData && ovhData.lyrics) {
+                        renderPlainLyricsUI(ovhData.lyrics);
+                        statusEl.innerText = "Texto plano";
+                        return;
+                    }
+                }
+            }
+
+            container.innerHTML = '<div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">No se encontro letra disponible para esta cancion.</div>';
+            statusEl.innerText = "No encontrada";
+        } catch (err) {
+            if (fetchId !== lastLyricsFetchId) return;
+            container.innerHTML = '<div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">No se pudo conectar al servicio de letras.</div>';
+            statusEl.innerText = "Sin conexion";
+        }
+    }
+
+    function parseSyncedLyrics(lrcText) {
+        syncedLyrics = [];
+        const lines = lrcText.split('\n');
+        const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
+
+        lines.forEach(line => {
+            const text = line.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '').trim();
+            let match;
+            timeRegex.lastIndex = 0;
+            while ((match = timeRegex.exec(line)) !== null) {
+                const min = parseInt(match[1], 10);
+                const sec = parseInt(match[2], 10);
+                const ms = parseInt(match[3].padEnd(3, '0'), 10);
+                const totalTime = min * 60 + sec + (ms / 1000);
+                if (text) {
+                    syncedLyrics.push({ time: totalTime, text: text });
+                }
+            }
+        });
+
+        syncedLyrics.sort((a, b) => a.time - b.time);
+        isSyncedLyrics = syncedLyrics.length > 0;
+    }
+
+    function renderLyricsUI() {
+        const container = document.getElementById('lyricsContainer');
+        container.innerHTML = '';
+        syncedLyrics.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'lyric-line';
+            div.id = `lyric-${index}`;
+            div.innerText = item.text;
+            div.onclick = () => {
+                if (activeAudio.duration) {
+                    activeAudio.currentTime = item.time;
+                    syncLyricsUI(item.time);
+                }
+            };
+            container.appendChild(div);
+        });
+    }
+
+    function renderPlainLyricsUI(plainText) {
+        isSyncedLyrics = false;
+        const container = document.getElementById('lyricsContainer');
+        container.innerHTML = '';
+        const div = document.createElement('div');
+        div.className = 'lyric-plain';
+        div.innerText = plainText.trim();
+        container.appendChild(div);
+    }
+
+    function syncLyricsUI(currentTime) {
+        if (!isSyncedLyrics || syncedLyrics.length === 0) return;
+
+        let newIdx = -1;
+        for (let i = 0; i < syncedLyrics.length; i++) {
+            if (currentTime >= syncedLyrics[i].time) {
+                newIdx = i;
+            } else {
+                break;
+            }
+        }
+
+        if (newIdx !== activeLyricIndex) {
+            activeLyricIndex = newIdx;
+            document.querySelectorAll('.lyric-line').forEach(el => el.classList.remove('active'));
+            const activeEl = document.getElementById(`lyric-${activeLyricIndex}`);
+            if (activeEl) {
+                activeEl.classList.add('active');
+                const container = document.getElementById('lyricsContainer');
+                const scrollTarget = activeEl.offsetTop - container.offsetTop - (container.clientHeight / 2) + (activeEl.clientHeight / 2);
+                container.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
+            }
+        }
+    }
+
+    // --- ECUALIZADOR ---
     const eqBands = ['60', '250', '1k', '4k', '12k'];
     eqBands.forEach(band => {
         const slider = document.getElementById(`eq${band}`);
@@ -721,69 +1208,37 @@
     function togglePanel(id) {
         document.getElementById('eqPanel').classList.remove('show');
         document.getElementById('playlistPanel').classList.remove('show');
+        document.getElementById('lyricsPanel').classList.remove('show');
         document.getElementById(id).classList.add('show');
     }
     
     function closePanels() {
         document.getElementById('eqPanel').classList.remove('show');
         document.getElementById('playlistPanel').classList.remove('show');
-    }
-
-    function renderPlaylist() {
-        const cont = document.getElementById('playlistContainer'); 
-        cont.innerHTML = '';
-        if (playlistData.length === 0) {
-            cont.innerHTML = '<div style="text-align: center; color: var(--text-dim); font-size: 0.85rem; padding: 15px;">Carpeta vacia</div>';
-            return;
-        }
-        playlistData.forEach((data, i) => {
-            const div = document.createElement('div'); div.className = 'pl-item'; div.id = `pl-${i}`;
-            div.onclick = () => { playSong(i, true); closePanels(); };
-            const displayTitle = data.artist === "Desconocido" ? data.title : `${data.artist} - ${data.title}`;
-            div.innerHTML = `<span class="pl-title">${displayTitle}</span>`;
-            cont.appendChild(div);
-        });
-        updateActivePlaylist();
-    }
-
-    function filterPlaylist() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const items = document.querySelectorAll('.pl-item');
-        items.forEach((item, i) => {
-            const data = playlistData[i];
-            const textToSearch = `${data.artist} ${data.title}`.toLowerCase();
-            item.style.display = textToSearch.includes(query) ? 'flex' : 'none';
-        });
-    }
-
-    function updateActivePlaylist() {
-        document.querySelectorAll('.pl-item').forEach(el => el.classList.remove('active'));
-        const el = document.getElementById(`pl-${currentIndex}`);
-        if(el) {
-            el.classList.add('active');
-            const container = document.getElementById('playlistContainer');
-            const offset = el.offsetTop - container.offsetTop - 10;
-            container.scrollTo({ top: offset, behavior: 'smooth' });
-        }
+        document.getElementById('lyricsPanel').classList.remove('show');
     }
 
     function saveSettings() {
-        const config = {
-            theme: document.body.classList.contains('light-theme') ? 'light' : 'dark',
-            volume: volSlider.value,
-            shuffle: isShuffle,
-            loop: isLoop,
-            currentIndex: currentIndex,
-            eq: {
-                eq60: document.getElementById('eq60').value,
-                eq250: document.getElementById('eq250').value,
-                eq1k: document.getElementById('eq1k').value,
-                eq4k: document.getElementById('eq4k').value,
-                eq12k: document.getElementById('eq12k').value
-            },
-            cachedPlaylistData: playlistData.map(d => ({ title: d.title, artist: d.artist, name: d.name }))
-        };
-        localStorage.setItem('musicplayer_config', JSON.stringify(config));
+        try {
+            const config = {
+                theme: document.body.classList.contains('light-theme') ? 'light' : 'dark',
+                volume: volSlider.value,
+                shuffle: isShuffle,
+                loop: isLoop,
+                currentIndex: currentIndex,
+                eq: {
+                    eq60: document.getElementById('eq60').value,
+                    eq250: document.getElementById('eq250').value,
+                    eq1k: document.getElementById('eq1k').value,
+                    eq4k: document.getElementById('eq4k').value,
+                    eq12k: document.getElementById('eq12k').value
+                },
+                cachedTagsMap: cachedTagsMap
+            };
+            localStorage.setItem('musicplayer_config', JSON.stringify(config));
+        } catch (e) {
+            // Si el cache excede la cuota de localStorage, guardar configuracion esencial
+        }
     }
 
     function loadSettings() {
@@ -819,9 +1274,8 @@
                 });
             }
 
-            if (config.cachedPlaylistData && config.cachedPlaylistData.length > 0) {
-                document.getElementById('artist').innerText = "Selecciona de nuevo la carpeta para restaurar la reproduccion de audio";
-                document.getElementById('plCount').innerText = `${config.cachedPlaylistData.length} pistas (Historial)`;
+            if (config.cachedTagsMap) {
+                cachedTagsMap = config.cachedTagsMap;
             }
         } catch (e) {
             console.error("Error al cargar configuraciones:", e);
